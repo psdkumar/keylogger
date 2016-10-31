@@ -2,11 +2,10 @@
 
 guide for ubuntu users :
 *********************
-to start keylogger.py open terminal type the following:
+to start keylogger.py open terminal in the repo and  type the following:
 
-$ cd into_the_repo
-$ chmod -x run.sh
-$ ./run.sh
+>chmod -x run.sh
+>./run.sh
 
 -----------------------
 
