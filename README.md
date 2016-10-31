@@ -4,8 +4,8 @@ guide for ubuntu users :
 *********************
 to start keylogger.py open terminal in the repo and  type the following:
 
->chmod -x run.sh
->./run.sh
+    chmod -x run.sh
+    ./run.sh
 
 -----------------------
 
