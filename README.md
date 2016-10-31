@@ -11,7 +11,7 @@ to start keylogger.py open terminal in the repo and  type the following:
 
 to stop keylogger.py open another terminal and type :
 
-$ pkill -f keylogger.py
+    pkill -f keylogger.py
 *********************
 
 keylogger collects the data from ur keyboard strokes and puts them into (_features) folders
