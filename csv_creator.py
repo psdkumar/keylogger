@@ -10,27 +10,23 @@ filepaths = []
 filename = []
 data = []
 mean = []
-length = []
+size = []
 
 curr_dir = os.getcwd()
 directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
-# directories = ["Primary_features"]
-
 for directory in directories : 
 	features_dir = os.path.join(curr_dir, directory)
 	file_search = os.path.join(features_dir, '*.txt')	
 	filepaths = glob.glob(file_search)
 # print filepaths	
 
-# filepaths = ["/home/sai/Documents/keylogger/Primary_features/bracketleft.txt", "/home/sai/Documents/keylogger/Primary_features/1.txt"]
 for i,filepath in enumerate(filepaths) :
 	file = open(filepath, 'r')
 	filename.append(os.path.splitext(os.path.basename(filepath))[0])
 	content = file.readlines()
 	file.close()
 	data.append(content)
-	length.append(len(content))
-	
+	size.append(len(content))
 	# Calculating Mean
 	data_sum = 0
 	for j,val in enumerate(data[i]) :
@@ -39,15 +35,16 @@ for i,filepath in enumerate(filepaths) :
 	mean_data = data_sum / max(len(content),1) 
 	mean.append(mean_data)
 
-max_len = max(length)
+max_size = max(size)
+min_size = min(size)
+
 for i,filepath in enumerate(filepaths) :
-	if length[i] < max_len :
-		for j in range(length[i],max_len) :
+	if size[i] < max_size :
+		for j in range(size[i],max_size) :
 			data[i].append(round(mean[i],6))
 	dic[filename[i]] = data[i]		 
 
 # print dic
 df = pd.DataFrame(dic)
 print df
-
 df.to_csv("data.csv", sep='\t')
