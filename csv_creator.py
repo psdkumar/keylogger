@@ -26,22 +26,19 @@ for i,filepath in enumerate(filepaths) :
 	content = file.readlines()
 	file.close()
 	data.append(content)
-	size.append(len(content))
-	# Calculating Mean
-	data_sum = 0
 	for j,val in enumerate(data[i]) :
 		data[i][j] = float(data[i][j])
-		data_sum += data[i][j]
-	mean_data = data_sum / max(len(content),1) 
-	mean.append(mean_data)
+	mean.append(round(np.mean(data[i]),6))
+	size.append(len(content))
 
 max_size = max(size)
 min_size = min(size)
+print min_size,max_size
 
 for i,filepath in enumerate(filepaths) :
 	if size[i] < max_size :
 		for j in range(size[i],max_size) :
-			data[i].append(round(mean[i],6))
+			data[i].append(mean[i])
 	dic[filename[i]] = data[i]		 
 
 # print dic
