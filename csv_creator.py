@@ -65,8 +65,9 @@ class DataFramer:
 				for j in range(self.size[i],self.max_size) :
 					self.data[i].append(self.mean[i])
 			self.dic[self.filename[i]] = self.data[i]		 
-		
+		self.dic["user"] = [1] * self.max_size
 		# print self.dic
+		# print self.dic['user'],len(self.dic['user'])
 		self.dframe = pd.DataFrame(self.dic)
 		print self.dframe
 
@@ -77,6 +78,7 @@ class DataFramer:
 
 
 if __name__ == '__main__':
+	
 	df = DataFramer()
 	df.get_all_paths()
 	df.extract_data()
