@@ -1,0 +1,79 @@
+#!/usr/bin/python
+
+import os
+import glob
+import pandas as pd
+import numpy as np
+
+
+class DataFramer:
+
+	def __init__(self):
+
+		self.dic = {}
+		self.filepaths = []
+		self.filename = []
+		self.data = []
+		self.mean = []
+		self.size = []
+		self.dframe = pd.DataFrame()
+
+
+	def get_all_paths(self,this_dir):
+
+		self.curr_dir = this_dir
+		directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
+		for directory in directories : 
+			features_dir = os.path.join(self.curr_dir, directory)
+			file_search = os.path.join(features_dir, '*.txt')	
+			self.filepaths.extend(glob.glob(file_search))
+		# print filepaths	
+	
+
+	def get_specific_paths(self, paths):
+
+		self.filepaths = paths
+
+
+	def extract_data(self):
+
+		for i,filepath in enumerate(self.filepaths) :
+			file = open(filepath, 'r')
+			tmp = ""
+			if "_down" in filepath :
+				tmp = "down_"
+			elif "_up" in filepath :
+				tmp = "up_"
+			self.filename.append(tmp + os.path.splitext(os.path.basename(filepath))[0])
+			content = file.readlines()
+			file.close()
+
+			self.data.append(content)
+			for j,val in enumerate(self.data[i]) :
+				self.data[i][j] = float(self.data[i][j])
+			self.mean.append(round(np.mean(self.data[i]),6))
+			self.size.append(len(content))
+
+	def make_dataframe(self):
+
+		self.max_size = max(self.size)
+		self.min_size = min(self.size)
+		# print self.min_size,self.max_size,self.size
+
+		for i,filepath in enumerate(self.filepaths) :
+			if self.size[i] < self.max_size :
+				for j in range(self.size[i],self.max_size) :
+					self.data[i].append(self.mean[i])
+			self.dic[self.filename[i]] = self.data[i]		 
+		
+		self.dic["user"] = [0] * self.max_size
+		self.dframe0 = pd.DataFrame(self.dic)
+		self.dic["user"] = [1] * self.max_size
+		self.dframe1 = pd.DataFrame(self.dic)
+		print self.dframe0
+
+
+	def make_csv(self):
+
+		self.dframe0.to_csv(os.path.join(self.curr_dir, "data_0.csv"), sep='\t')
+		self.dframe1.to_csv(os.path.join(self.curr_dir, "data_1.csv"), sep='\t')
