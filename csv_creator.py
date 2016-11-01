@@ -9,14 +9,14 @@ import numpy as np
 class DataFramer:
 
 	def __init__(self):
-		
+
 		self.dic = {}
 		self.filepaths = []
 		self.filename = []
 		self.data = []
 		self.mean = []
 		self.size = []
-		self.df = pd.DataFrame()
+		self.dframe = pd.DataFrame()
 
 
 	def get_all_paths(self):
@@ -67,13 +67,13 @@ class DataFramer:
 			self.dic[self.filename[i]] = self.data[i]		 
 		
 		# print self.dic
-		self.df = pd.DataFrame(self.dic)
-		print self.df
+		self.dframe = pd.DataFrame(self.dic)
+		print self.dframe
 
 
 	def make_csv(self):
 
-		self.df.to_csv("data.csv", sep='\t')
+		self.dframe.to_csv("data.csv", sep='\t')
 
 
 if __name__ == '__main__':
