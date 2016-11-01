@@ -14,12 +14,11 @@ size = []
 
 curr_dir = os.getcwd()
 directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
-#directories = ["Primary_features"]
-for directory in directories :
+for directory in directories : 
 	features_dir = os.path.join(curr_dir, directory)
-	file_search = os.path.join(features_dir, '*.txt')
+	file_search = os.path.join(features_dir, '*.txt')	
 	filepaths.extend(glob.glob(file_search))
-# print filepaths
+# print filepaths	
 
 for i,filepath in enumerate(filepaths) :
 	file = open(filepath, 'r')
@@ -28,7 +27,7 @@ for i,filepath in enumerate(filepaths) :
 		tmp = "down_"
 	elif "_up" in filepath :
 		tmp = "up_"
-	filename.append(tmp+os.path.splitext(os.path.basename(filepath))[0])
+	filename.append(tmp + os.path.splitext(os.path.basename(filepath))[0])
 	content = file.readlines()
 	file.close()
 	data.append(content)
@@ -40,15 +39,15 @@ for i,filepath in enumerate(filepaths) :
 max_size = max(size)
 min_size = min(size)
 print min_size,max_size
+print size
 
-#print filepaths
 for i,filepath in enumerate(filepaths) :
 	if size[i] < max_size :
 		for j in range(size[i],max_size) :
 			data[i].append(mean[i])
-	dic[filename[i]] = data[i]
+	dic[filename[i]] = data[i]		 
 
-#print dic
+# print dic
 df = pd.DataFrame(dic)
 print df
 df.to_csv("data.csv", sep='\t')
