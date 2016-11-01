@@ -81,6 +81,7 @@ if __name__ == '__main__':
 	
 	df = DataFramer()
 	df.get_all_paths()
+	# df.get_specific_paths()
 	df.extract_data()
 	df.make_dataframe()
 	df.make_csv()
