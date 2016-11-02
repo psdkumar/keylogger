@@ -2,6 +2,9 @@
 
 import re
 import threading
+import time
+import glob
+import os
 
 from Xlib import X, XK, display, error
 from Xlib.ext import record
@@ -54,6 +57,9 @@ class HookManager(threading.Thread):
         #last pressed and released buttons
         self.Last_pressed = ['Return' , datetime.now()]
         self.Last_released = ['' , datetime.now()]
+
+        #boolean to know if its testing
+        self.is_testing = False
 
     def run(self):
         # Check if the extension is present
@@ -199,7 +205,7 @@ class HookManager(threading.Thread):
                 timediff = (curr_time - self.Keys_down[key]).total_seconds()
                 del self.Keys_down[key]
 
-        return pyxhookkeyevent(self.lookup_keysym(keysym), self.asciivalue(keysym), MessageName, timediff, down_pair, up_pair, up_down_pair)
+        return pyxhookkeyevent(self.lookup_keysym(keysym), self.asciivalue(keysym), MessageName, timediff, down_pair, up_pair, up_down_pair, self.is_testing)
 
 class pyxhookkeyevent:
     """This is the class that is returned with each key event.f
@@ -215,32 +221,39 @@ class pyxhookkeyevent:
     MessageName = "key down", "key up".
     """
 
-    def __init__(self, Key, Ascii, MessageName, Timediff, Down_pair, Up_pair ,Up_Down_pair):
+    def __init__(self, Key, Ascii, MessageName, Timediff, Down_pair, Up_pair ,Up_Down_pair, Is_testing):
         self.Key = Key
         self.Ascii = Ascii
         self.MessageName = MessageName
         self.Timediff = Timediff
         self.Down_pair = Down_pair
         self.Up_pair = Up_pair
-        self.Up_Down_pair =Up_Down_pair
+        self.Up_Down_pair = Up_Down_pair
+        self.Is_testing = Is_testing
     def __str__(self):
         curr_time = datetime.now()
         self.log = str(curr_time) + "\t" + str(self.Ascii) + "\t" + str(self.Key) + "\t" + str(self.MessageName) + "\n"
-        with open("Logs.txt", "a") as myfile:
+        if self.Is_testing == True :
+            head = "Testing/"
+        else :
+            head = ""
+        self.write_data(head)
+        return self.log
+    def write_data(self, head) :
+        with open(head+"Logs.txt", "a") as myfile:
             myfile.write(self.log)
         if self.Timediff is not None:
-            with open("Primary_features/"+str(self.Key)+".txt", "a") as myfile:
+            with open(head+"Primary_features/"+str(self.Key)+".txt", "a") as myfile:
                 myfile.write(str(self.Timediff)+ "\n" )
         if self.Down_pair != [] :
-            with open("Secondary_features_down/"+str(self.Down_pair[0])+".txt", "a") as myfile:
+            with open(head+"Secondary_features_down/"+str(self.Down_pair[0])+".txt", "a") as myfile:
                 myfile.write(str(self.Down_pair[1])+ "\n" )
         if self.Up_pair != [] :
-            with open("Secondary_features_up/"+str(self.Up_pair[0])+".txt", "a") as myfile:
+            with open(head+"Secondary_features_up/"+str(self.Up_pair[0])+".txt", "a") as myfile:
                 myfile.write(str(self.Up_pair[1])+ "\n" )
         if self.Up_Down_pair != [] :
-            with open("Teritiary_features/"+str(self.Up_Down_pair[0])+".txt", "a") as myfile:
+            with open(head+"Teritiary_features/"+str(self.Up_Down_pair[0])+".txt", "a") as myfile:
                 myfile.write(str(self.Up_Down_pair[1])+ "\n" )
-        return self.log
 
 class pyxhookmouseevent:
     """This is the class that is returned with each key event.f
@@ -267,9 +280,29 @@ class pyxhookmouseevent:
 #########################END CLASS DEF#################################
 #######################################################################
 
-if __name__ == '__main__':
+def clear_testing_content() :
+    base_directory = os.getcwd()+"/"
+    folder_name = "Testing/"
+    directories = ["Primary_features/", "Secondary_features_down/", "Secondary_features_up/", "Teritiary_features/"]
+    for directory in directories :
+        os.chdir(base_directory+folder_name+directory)
+        filelist = glob.glob("*.txt")
+        for f in filelist:
+            os.remove(f)
+    os.chdir(base_directory)
+
+def start_keylogger(seconds) :
     hm = HookManager()
+    if seconds != -1 :
+        hm.is_testing = True
+        clear_testing_content()
     hm.HookKeyboard()
     hm.KeyDown = hm.printevent
     hm.KeyUp = hm.printevent
     hm.start()
+    if seconds != -1 :
+        time.sleep(seconds)
+        hm.cancel()
+
+if __name__ == '__main__':
+    start_keylogger(-1)
