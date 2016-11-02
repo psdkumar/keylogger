@@ -23,12 +23,12 @@ class DataFramer:
 
 		self.curr_dir = this_dir
 		directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
-		for directory in directories : 
+		for directory in directories :
 			features_dir = os.path.join(self.curr_dir, directory)
-			file_search = os.path.join(features_dir, '*.txt')	
+			file_search = os.path.join(features_dir, '*.txt')
 			self.filepaths.extend(glob.glob(file_search))
-		# print filepaths	
-	
+		# print filepaths
+
 
 	def get_specific_paths(self, paths):
 
@@ -64,8 +64,8 @@ class DataFramer:
 			if self.size[i] < self.max_size :
 				for j in range(self.size[i],self.max_size) :
 					self.data[i].append(self.mean[i])
-			self.dic[self.filename[i]] = self.data[i]		 
-		
+			self.dic[self.filename[i]] = self.data[i]
+
 		self.dic["user"] = [0] * self.max_size
 		self.dframe0 = pd.DataFrame(self.dic)
 		self.dic["user"] = [1] * self.max_size
@@ -105,20 +105,20 @@ class TestingDataFramer:
 		self.home_dir = os.getcwd()
 		self.test_dir = this_dir
 		directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
-		for directory in directories : 
+		for directory in directories :
 			# Test Files
 			test_features_dir = os.path.join(self.test_dir, directory)
-			test_file_search = os.path.join(test_features_dir, '*.txt')	
+			test_file_search = os.path.join(test_features_dir, '*.txt')
 			self.test_filepaths.extend(glob.glob(test_file_search))
 
 			# Train Files
 			train_features_dir = os.path.join(self.home_dir, directory)
-			train_file_search = os.path.join(train_features_dir, '*.txt')	
+			train_file_search = os.path.join(train_features_dir, '*.txt')
 			self.train_filepaths.extend(glob.glob(train_file_search))
 
 		# print self.test_filepaths
-		# print self.train_filepaths	
-	
+		# print self.train_filepaths
+
 
 	def get_specific_paths(self, paths):
 
@@ -144,16 +144,16 @@ class TestingDataFramer:
 
 				self.test_filename.append(tmp + os.path.splitext(os.path.basename(test_filepath))[0])
 				self.train_filename.append(tmp + os.path.splitext(os.path.basename(train_filepath))[0])
-			
+
 				test_content = test_file.readlines()
 				train_content = train_file.readlines()
-				
+
 				test_file.close()
 				train_file.close()
 
 				self.test_data.append(test_content)
 				self.train_data.append(train_content)
-				
+
 				for j,val in enumerate(self.test_data[i]) :
 					self.test_data[i][j] = float(self.test_data[i][j])
 				for j,val in enumerate(self.train_data[i]) :
@@ -161,7 +161,7 @@ class TestingDataFramer:
 
 				self.test_mean.append(round(np.mean(self.test_data[i]),6))
 				self.train_mean.append(round(np.mean(self.train_data[i]),6))
-				
+
 				self.test_size.append(len(test_content))
 				self.train_size.append(len(train_content))
 			else :
@@ -169,13 +169,14 @@ class TestingDataFramer:
 		self.train_filepaths = tmp_train_filepaths
 
 	def make_dataframe(self):
-		
+		print self.test_size
+		print self.train_size
 		self.test_max_size = max(self.test_size)
 		self.train_max_size = max(self.train_size)
-		
+
 		self.test_min_size = min(self.test_size)
 		self.train_min_size = min(self.train_size)
-		
+
 		# print self.test_min_size,self.test_max_size,self.test_size
 		# print self.train_min_size,self.train_max_size,self.train_size
 
@@ -189,8 +190,8 @@ class TestingDataFramer:
 			if self.train_size[i] < self.train_max_size :
 				for j in range(self.train_size[i],self.train_max_size) :
 					self.train_data[i].append(self.train_mean[i])
-			self.train_dic[self.train_filename[i]] = self.train_data[i]		 
-		
+			self.train_dic[self.train_filename[i]] = self.train_data[i]
+
 		self.test_dic["user"] = [0] * self.test_max_size
 		self.test_dframe0 = pd.DataFrame(self.test_dic)
 		self.test_dic["user"] = [1] * self.test_max_size
