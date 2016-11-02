@@ -17,6 +17,3 @@ def create_final_CSVs() :
 if __name__ == '__main__':
     start_test()
     create_final_CSVs()
-
-
-
