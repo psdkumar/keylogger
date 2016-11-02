@@ -26,5 +26,5 @@ def create_final_CSVs() :
 
 if __name__ == '__main__':
 	clean_testing_dir(os.path.join(os.getcwd(),"Testing"))
-    start_test()
-    create_final_CSVs()
+	start_test()
+	create_final_CSVs()
