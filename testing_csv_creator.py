@@ -1,8 +1,8 @@
-from data_framer import DataFramer
+from data_framer import TestingDataFramer
 import os
 
-df = DataFramer()
-df.get_all_paths(os.path.join(os.getcwd(), "Testing"))
-df.extract_data()
-df.make_dataframe()
-df.make_csv()
+tdf = TestingDataFramer()
+tdf.get_all_paths(os.path.join(os.getcwd(), "Testing"))
+tdf.extract_data()
+tdf.make_dataframe()
+tdf.make_csv()
