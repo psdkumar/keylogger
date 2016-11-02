@@ -52,10 +52,11 @@ class HookManager(threading.Thread):
 
         #initializing a dictionary for pressed keys
         self.Keys_down = {}
-        self.Keys_down['Return'] = datetime.now()
+        #self.Keys_down['Return'] = datetime.now()
 
         #last pressed and released buttons
-        self.Last_pressed = ['Return' , datetime.now()]
+        #self.Last_pressed = ['Return' , datetime.now()]
+        self.Last_pressed = ['' , datetime.now()]
         self.Last_released = ['' , datetime.now()]
 
         #boolean to know if its testing
@@ -236,7 +237,7 @@ class pyxhookkeyevent:
         if self.Is_testing == True :
             head = "Testing/"
         else :
-            head = ""
+            head = "true/"
         self.write_data(head)
         return self.log
     def write_data(self, head) :
@@ -280,22 +281,10 @@ class pyxhookmouseevent:
 #########################END CLASS DEF#################################
 #######################################################################
 
-def clear_testing_content() :
-    base_directory = os.getcwd()+"/"
-    folder_name = "Testing/"
-    directories = ["Primary_features/", "Secondary_features_down/", "Secondary_features_up/", "Teritiary_features/"]
-    for directory in directories :
-        os.chdir(base_directory+folder_name+directory)
-        filelist = glob.glob("*.txt")
-        for f in filelist:
-            os.remove(f)
-    os.chdir(base_directory)
-
 def start_keylogger(seconds) :
     hm = HookManager()
     if seconds != -1 :
         hm.is_testing = True
-        clear_testing_content()
     hm.HookKeyboard()
     hm.KeyDown = hm.printevent
     hm.KeyUp = hm.printevent

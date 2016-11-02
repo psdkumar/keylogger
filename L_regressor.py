@@ -40,110 +40,24 @@ flags.DEFINE_string(
     "",
     "Path to the test data.")
 
-#COLUMNS = ["age", "workclass", "fnlwgt", "education", "education_num",
-#           "marital_status", "occupation", "relationship", "race", "gender",
-#           "capital_gain", "capital_loss", "hours_per_week", "native_country",
-#           "income_bracket"]
 COLUMNS = []
-for x in ascii_lowercase :
-	COLUMNS.append(str(x))
-COLUMNS.append("is_user")
 
 LABEL_COLUMN = "label"
 CATEGORICAL_COLUMNS = []
 CONTINUOUS_COLUMNS = []
-for x in ascii_lowercase :
-	CONTINUOUS_COLUMNS.append(str(x))
-
-def maybe_download():
-  """May be downloads training data and returns train and test file names."""
-  if FLAGS.train_data:
-    train_file_name = FLAGS.train_data
-  else:
-    train_file = tempfile.NamedTemporaryFile(delete=False)
-    response = urllib.request.urlopen("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data")  # pylint: disable=line-too-long
-    with open(train_file.name ,"wb") as myfile:
-      myfile.write(response.read())
-    train_file_name = train_file.name
-    train_file.close()
-    print("Training data is downloaded to %s" % train_file_name)
-
-  if FLAGS.test_data:
-    test_file_name = FLAGS.test_data
-  else:
-    test_file = tempfile.NamedTemporaryFile(delete=False)
-    response = urllib.request.urlopen("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test")  # pylint: disable=line-too-long
-    with open(test_file.name ,"wb") as myfile:
-      myfile.write(response.read())
-    test_file_name = test_file.name
-    test_file.close()
-    print("Test data is downloaded to %s" % test_file_name)
-
-  return train_file_name, test_file_name
 
 
 def build_estimator(model_dir):
-  """Build an estimator."""
-  # Sparse base columns.
-  gender = tf.contrib.layers.sparse_column_with_keys(column_name="gender",
-                                                     keys=["female", "male"])
-  education = tf.contrib.layers.sparse_column_with_hash_bucket(
-      "education", hash_bucket_size=1000)
-  relationship = tf.contrib.layers.sparse_column_with_hash_bucket(
-      "relationship", hash_bucket_size=100)
-  workclass = tf.contrib.layers.sparse_column_with_hash_bucket(
-      "workclass", hash_bucket_size=100)
-  occupation = tf.contrib.layers.sparse_column_with_hash_bucket(
-      "occupation", hash_bucket_size=1000)
-  native_country = tf.contrib.layers.sparse_column_with_hash_bucket(
-      "native_country", hash_bucket_size=1000)
+
 
   # Continuous base columns.
-  age = tf.contrib.layers.real_valued_column("age")
-  education_num = tf.contrib.layers.real_valued_column("education_num")
-  capital_gain = tf.contrib.layers.real_valued_column("capital_gain")
-  capital_loss = tf.contrib.layers.real_valued_column("capital_loss")
-  hours_per_week = tf.contrib.layers.real_valued_column("hours_per_week")
-  alphabet_features=[]
-  for x in ascii_lowercase :
- 	  alphabet_features.append(tf.contrib.layers.real_valued_column(str(x)))
-
-  # Transformations.
-  age_buckets = tf.contrib.layers.bucketized_column(age,
-                                                    boundaries=[
-                                                        18, 25, 30, 35, 40, 45,
-                                                        50, 55, 60, 65
-                                                    ])
-
-  # Wide columns and deep columns.
-  wide_columns = [gender, native_country, education, occupation, workclass,
-                  relationship, age_buckets,
-                  tf.contrib.layers.crossed_column([education, occupation],
-                                                   hash_bucket_size=int(1e4)),
-                  tf.contrib.layers.crossed_column(
-                      [age_buckets, education, occupation],
-                      hash_bucket_size=int(1e6)),
-                  tf.contrib.layers.crossed_column([native_country, occupation],
-                                                   hash_bucket_size=int(1e4))]
-  deep_columns = [
-      tf.contrib.layers.embedding_column(workclass, dimension=8),
-      tf.contrib.layers.embedding_column(education, dimension=8),
-      tf.contrib.layers.embedding_column(gender, dimension=8),
-      tf.contrib.layers.embedding_column(relationship, dimension=8),
-      tf.contrib.layers.embedding_column(native_country,
-                                         dimension=8),
-      tf.contrib.layers.embedding_column(occupation, dimension=8),
-      age,
-      education_num,
-      capital_gain,
-      capital_loss,
-      hours_per_week,
-  ]
+  features = []
+  for feature in COLUMNS :
+    if feature != "user" :
+ 	    features.append(tf.contrib.layers.real_valued_column(str(feature)))
 
   if FLAGS.model_type == "wide":
-   # m = tf.contrib.learn.LinearClassifier(model_dir=model_dir,
-    #                                      feature_columns=wide_columns)
-	m = tf.contrib.learn.LinearClassifier(model_dir=model_dir,feature_columns=alphabet_features)
+	 m = tf.contrib.learn.LinearClassifier(model_dir=model_dir,feature_columns=features)
   elif FLAGS.model_type == "deep":
     m = tf.contrib.learn.DNNClassifier(model_dir=model_dir,
                                        feature_columns=deep_columns,
@@ -180,8 +94,8 @@ def input_fn(df):
 
 def train_and_eval():
   """Train and evaluate the model."""
-  train_file_name, test_file_name = "data.csv","data.csv"
-  print (train_file_name)
+  train_file_name, test_file_name = "Testing/train_data.csv","Testing/test_data.csv"
+  #print (train_file_name)
   df_train = pd.read_csv(
       tf.gfile.Open(train_file_name),
       names=COLUMNS,
@@ -191,13 +105,12 @@ def train_and_eval():
       tf.gfile.Open(test_file_name),
       names=COLUMNS,
       skipinitialspace=True,
-      skiprows=1,
       engine="python")
-  print (df_train)
+  print (df_test)
   df_train[LABEL_COLUMN] = (
-      df_train["is_user"]).astype(int)
+      df_train["user"]).astype(int)
   df_test[LABEL_COLUMN] = (
-      df_test["is_user"])                                                                 .astype(int)
+      df_test["user"]).astype(int)
 
   model_dir = tempfile.mkdtemp() if not FLAGS.model_dir else FLAGS.model_dir
   #print("model directory = %s" % model_dir)
@@ -206,11 +119,13 @@ def train_and_eval():
   m.fit(input_fn=lambda: input_fn(df_train), steps=FLAGS.train_steps)
 
   results = m.evaluate(input_fn=lambda: input_fn(df_test), steps=1)
-  #results = m.predict(input_fn=lambda: input_fn(df_test))
-  for key in sorted(results):
-    print("%s: %s" % (key, results[key]))
+  results = m.predict(input_fn=lambda: input_fn(df_test))
+#  for key in sorted(results):
+#    print("%s: %s" % (key, results[key]))
+
 
   print (results)
+
   #print (m.get_variable_names())
   #print (m.get_variable_value("linear/age_BUCKETIZED_weight"))
   #print (len(m.get_variable_value("linear/education_weights")))

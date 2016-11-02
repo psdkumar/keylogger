@@ -70,7 +70,6 @@ class DataFramer:
 		self.dframe0 = pd.DataFrame(self.dic)
 		self.dic["user"] = [1] * self.max_size
 		self.dframe1 = pd.DataFrame(self.dic)
-		print self.dframe0
 
 
 	def make_csv(self):
@@ -100,41 +99,48 @@ class TestingDataFramer:
 		self.test_dframe = pd.DataFrame()
 
 
-	def get_all_paths(self,this_dir):
+	def get_all_paths(self,true_dir,false_dir,test_dir):
 
 		self.home_dir = os.getcwd()
-		self.test_dir = this_dir
-		directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
-		for directory in directories :
-			# Test Files
-			test_features_dir = os.path.join(self.test_dir, directory)
-			test_file_search = os.path.join(test_features_dir, '*.txt')
-			self.test_filepaths.extend(glob.glob(test_file_search))
+		self.tft_dirs = [true_dir,false_dir,test_dir]
+		self.tft_filepaths = [[],[],[]]
 
-			# Train Files
-			train_features_dir = os.path.join(self.home_dir, directory)
-			train_file_search = os.path.join(train_features_dir, '*.txt')
-			self.train_filepaths.extend(glob.glob(train_file_search))
-
-		# print self.test_filepaths
-		# print self.train_filepaths
-
-
-	def get_specific_paths(self, paths):
-
-		self.filepaths = paths
+		#directories = ["Primary_features", "Secondary_features_down", "Secondary_features_up", "Teritiary_features"]
+		directories = ["Primary_features", "Teritiary_features"]
+		for i,tft_dir in enumerate(self.tft_dirs):
+			for directory in directories :
+				# Test Files
+				tft_features_dir = os.path.join(tft_dir, directory)
+				tft_file_search = os.path.join(tft_features_dir, '*.txt')
+				self.tft_filepaths[i].extend(glob.glob(tft_file_search))
 
 
 	def extract_data(self):
 
-		tmp_train_filepaths = []
-		for i,test_filepath in enumerate(self.test_filepaths) :
-			tmp_filepath = os.path.join(os.getcwd(),os.path.basename(os.path.dirname(test_filepath)),os.path.basename(test_filepath))
-			if tmp_filepath in self.train_filepaths :
-				train_filepath = tmp_filepath
-				tmp_train_filepaths.append(tmp_filepath)
-				test_file = open(test_filepath, 'r')
-				train_file = open(train_filepath, 'r')
+		tmp_tft_filepaths = [[],[],[]]
+		tft_filepath = ['','','']
+		self.tft_filename = [[],[],[]]
+		tft_content = [[],[],[]]
+		self.tft_data = [[],[],[]]
+		self.tft_mean = [[],[],[]]
+		self.tft_size = [[],[],[]]
+		k =0
+		for i,test_filepath in enumerate(self.tft_filepaths[2]) :
+			tmp_filepath = []
+			tmp_filepath.append(os.path.join(os.getcwd(),"true",os.path.basename(os.path.dirname(test_filepath)),os.path.basename(test_filepath)))
+			tmp_filepath.append(os.path.join(os.getcwd(),"false",os.path.basename(os.path.dirname(test_filepath)),os.path.basename(test_filepath)))
+
+			if tmp_filepath[0] in self.tft_filepaths[0] and tmp_filepath[1] in self.tft_filepaths[1] :
+				tft_filepath[0] = tmp_filepath[0]
+				tft_filepath[1] = tmp_filepath[1]
+				tft_filepath[2] = test_filepath
+
+				tmp_tft_filepaths[0].append(tft_filepath[0])
+				tmp_tft_filepaths[1].append(tft_filepath[1])
+
+				tft_file = []
+				for p in range(0,3) :
+					tft_file.append(open(tft_filepath[p], 'r'))
 
 				tmp = ""
 				if "_down" in test_filepath :
@@ -142,73 +148,80 @@ class TestingDataFramer:
 				elif "_up" in test_filepath :
 					tmp = "up_"
 
-				self.test_filename.append(tmp + os.path.splitext(os.path.basename(test_filepath))[0])
-				self.train_filename.append(tmp + os.path.splitext(os.path.basename(train_filepath))[0])
+				for p in range(0,3) :
+					self.tft_filename[p].append(tmp + os.path.splitext(os.path.basename(tft_filepath[p]))[0])
+					tft_content[p] = tft_file[p].readlines()
+					tft_file[p].close()
+					self.tft_data[p].append(tft_content[p])
 
-				test_content = test_file.readlines()
-				train_content = train_file.readlines()
+				for p in range(0,3) :
+					for j,val in enumerate(self.tft_data[p][k]) :
+						self.tft_data[p][k][j] = float(self.tft_data[p][k][j])
 
-				test_file.close()
-				train_file.close()
+				for p in range(0,3) :
+					self.tft_mean[p].append(round(np.mean(self.tft_data[p][k]),6))
+					self.tft_size[p].append(len(tft_content[p]))
 
-				self.test_data.append(test_content)
-				self.train_data.append(train_content)
+				k += 1
+			else:
+				i -= 1
+				tmp_tft_filepaths[2].append(test_filepath)
 
-				for j,val in enumerate(self.test_data[i]) :
-					self.test_data[i][j] = float(self.test_data[i][j])
-				for j,val in enumerate(self.train_data[i]) :
-					self.train_data[i][j] = float(self.train_data[i][j])
+		for tmp_test_filepath in tmp_tft_filepaths[2] :
+			self.tft_filepaths[2].remove(tmp_test_filepath)
 
-				self.test_mean.append(round(np.mean(self.test_data[i]),6))
-				self.train_mean.append(round(np.mean(self.train_data[i]),6))
+		for p in range(0,2):
+			self.tft_filepaths[p] = tmp_tft_filepaths[p]
 
-				self.test_size.append(len(test_content))
-				self.train_size.append(len(train_content))
-			else :
-				self.test_filepaths.remove(test_filepath)
-		self.train_filepaths = tmp_train_filepaths
+		# print self.tft_filepaths[0]
+
 
 	def make_dataframe(self):
-		print self.test_size
-		print self.train_size
-		self.test_max_size = max(self.test_size)
-		self.train_max_size = max(self.train_size)
+		self.tft_max_size = []
+		self.tft_min_size = []
+		tft_filepath = ['','','']
+		self.tft_dic = [{},{},{}]
+		self.tft_dframe = ['','','']
 
-		self.test_min_size = min(self.test_size)
-		self.train_min_size = min(self.train_size)
+		for p in range(0,3):
+			self.tft_max_size.append(max(self.tft_size[p]))
+			self.tft_min_size.append(min(self.tft_size[p]))
 
-		# print self.test_min_size,self.test_max_size,self.test_size
-		# print self.train_min_size,self.train_max_size,self.train_size
+		self.tft_max_size[0]= 50
+		self.tft_max_size[1]= 50
 
-		for i,test_filepath in enumerate(self.test_filepaths) :
-			if self.test_size[i] < self.test_max_size :
-				for j in range(self.test_size[i],self.test_max_size) :
-					self.test_data[i].append(self.test_mean[i])
-			self.test_dic[self.test_filename[i]] = self.test_data[i]
+		for p in range(0,3):
+			for i,tft_filepath[p] in enumerate(self.tft_filepaths[p]):
+				if self.tft_size[p][i] < self.tft_max_size[p] :
+					for j in range(self.tft_size[p][i],self.tft_max_size[p]):
+						self.tft_data[p][i].append(self.tft_mean[p][i])
+				else :
+					self.tft_data[p][i] = self.tft_data[p][i][0:self.tft_max_size[0]]
+				self.tft_dic[p][self.tft_filename[p][i]] = self.tft_data[p][i]
 
-		for i,train_filepath in enumerate(self.train_filepaths) :
-			if self.train_size[i] < self.train_max_size :
-				for j in range(self.train_size[i],self.train_max_size) :
-					self.train_data[i].append(self.train_mean[i])
-			self.train_dic[self.train_filename[i]] = self.train_data[i]
 
-		self.test_dic["user"] = [0] * self.test_max_size
-		self.test_dframe0 = pd.DataFrame(self.test_dic)
-		self.test_dic["user"] = [1] * self.test_max_size
-		self.test_dframe1 = pd.DataFrame(self.test_dic)
-		print self.test_dframe0
-
-		self.train_dic["user"] = [0] * self.train_max_size
-		self.train_dframe0 = pd.DataFrame(self.train_dic)
-		self.train_dic["user"] = [1] * self.train_max_size
-		self.train_dframe1 = pd.DataFrame(self.train_dic)
-		print self.train_dframe0
-
+		self.tft_dic[0]["zzzzzz"] = [1] * self.tft_max_size[0]
+		#print self.tft_dic[0]
+		self.tft_dframe[0] = pd.DataFrame(self.tft_dic[0])
+		#self.tft_dframe[0].insert(len(self.tft_filename[0]),"user",[1] * self.tft_max_size[0])
+		self.tft_dic[1]["zzzzzz"] = [0] * self.tft_max_size[1]
+		self.tft_dframe[1] = pd.DataFrame(self.tft_dic[1])
+		self.tft_dic[2]["zzzzzz"] = [0] * self.tft_max_size[2]
+		self.tft_dframe[2] = pd.DataFrame(self.tft_dic[2])
+		#print self.tft_dframe[0]
+		#print self.tft_dframe[1]
 
 	def make_csv(self):
 
-		self.test_dframe0.to_csv(os.path.join(self.test_dir, "test_data_0.csv"), sep='\t')
-		self.test_dframe1.to_csv(os.path.join(self.test_dir, "test_data_1.csv"), sep='\t')
+		train_data = pd.concat([self.tft_dframe[0],self.tft_dframe[1]])
+		test_data = self.tft_dframe[2]
 
-		self.train_dframe0.to_csv(os.path.join(self.test_dir, "train_data_0.csv"), sep='\t')
-		self.train_dframe1.to_csv(os.path.join(self.test_dir, "train_data_1.csv"), sep='\t')
+		train_data.to_csv(os.path.join(self.tft_dirs[2], "train_data.csv") ,sep=',' ,index=False ,header=False)
+		test_data.to_csv(os.path.join(self.tft_dirs[2], "test_data.csv") ,sep=',' ,index=False ,header=False)
+
+		#with open(os.path.join(self.tft_dirs[2], "train_data.csv"))
+
+
+	def get_columns(self) :
+		return self.tft_filename[0]
+
